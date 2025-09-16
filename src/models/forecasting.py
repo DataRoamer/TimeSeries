@@ -6,12 +6,24 @@ import pandas as pd
 import numpy as np
 from typing import Optional, Tuple, Dict, Any
 from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.statespace.sarimax import SARIMAX
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.preprocessing import MinMaxScaler
 import warnings
+
+# Optional TensorFlow imports for LSTM
+try:
+    import tensorflow as tf
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.layers import LSTM, Dense, Dropout
+    from tensorflow.keras.optimizers import Adam
+    TENSORFLOW_AVAILABLE = True
+except ImportError:
+    TENSORFLOW_AVAILABLE = False
 
 
 class BaseForecaster:
@@ -84,6 +96,42 @@ class ARIMAForecaster(BaseForecaster):
             warnings.filterwarnings("ignore")
             self.model = ARIMA(data, order=self.order)
             self.fitted_model = self.model.fit()
+        self.fitted = True
+    
+    def predict(self, steps: int) -> np.ndarray:
+        if not self.fitted:
+            raise ValueError("Model must be fitted before prediction")
+        return self.fitted_model.forecast(steps=steps)
+    
+    def forecast_with_intervals(self, steps: int, alpha: float = 0.05) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        if not self.fitted:
+            raise ValueError("Model must be fitted before prediction")
+        
+        forecast_result = self.fitted_model.get_forecast(steps=steps, alpha=alpha)
+        forecast = forecast_result.predicted_mean.values
+        confidence_int = forecast_result.conf_int()
+        
+        return forecast, confidence_int.iloc[:, 0].values, confidence_int.iloc[:, 1].values
+
+
+class SARIMAForecaster(BaseForecaster):
+    """Seasonal ARIMA forecasting model"""
+    
+    def __init__(self, order: Tuple[int, int, int] = (1, 1, 1), 
+                 seasonal_order: Tuple[int, int, int, int] = (1, 1, 1, 24)):
+        super().__init__()
+        self.order = order
+        self.seasonal_order = seasonal_order
+    
+    def fit(self, data: pd.Series) -> None:
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore")
+            self.model = SARIMAX(data, 
+                               order=self.order,
+                               seasonal_order=self.seasonal_order,
+                               enforce_stationarity=False,
+                               enforce_invertibility=False)
+            self.fitted_model = self.model.fit(disp=False)
         self.fitted = True
     
     def predict(self, steps: int) -> np.ndarray:
@@ -195,6 +243,124 @@ class RandomForestForecaster(BaseForecaster):
         return np.array(forecast)
 
 
+class LSTMForecaster(BaseForecaster):
+    """LSTM Neural Network forecasting model"""
+    
+    def __init__(self, sequence_length: int = 48, hidden_units: int = 50, 
+                 epochs: int = 50, batch_size: int = 32, validation_split: float = 0.2):
+        super().__init__()
+        if not TENSORFLOW_AVAILABLE:
+            raise ImportError("TensorFlow is required for LSTM forecasting. Please install tensorflow.")
+        self.sequence_length = sequence_length
+        self.hidden_units = hidden_units
+        self.epochs = epochs
+        self.batch_size = batch_size
+        self.validation_split = validation_split
+        self.scaler = MinMaxScaler(feature_range=(0, 1))
+        self.model = None
+    
+    def _create_sequences(self, data: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        """Create sequences for LSTM training"""
+        X, y = [], []
+        for i in range(self.sequence_length, len(data)):
+            X.append(data[i-self.sequence_length:i])
+            y.append(data[i])
+        return np.array(X), np.array(y)
+    
+    def fit(self, data: pd.Series) -> None:
+        # Scale the data
+        data_scaled = self.scaler.fit_transform(data.values.reshape(-1, 1)).flatten()
+        
+        # Create sequences
+        X, y = self._create_sequences(data_scaled)
+        
+        if len(X) == 0:
+            raise ValueError(f"Not enough data to create sequences. Need at least {self.sequence_length + 1} data points.")
+        
+        # Reshape for LSTM [samples, time steps, features]
+        X = X.reshape((X.shape[0], X.shape[1], 1))
+        
+        # Build LSTM model
+        self.model = Sequential([
+            LSTM(self.hidden_units, return_sequences=True, input_shape=(self.sequence_length, 1)),
+            Dropout(0.2),
+            LSTM(self.hidden_units, return_sequences=False),
+            Dropout(0.2),
+            Dense(25),
+            Dense(1)
+        ])
+        
+        self.model.compile(optimizer=Adam(learning_rate=0.001), loss='mean_squared_error')
+        
+        # Train the model
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore")
+            self.model.fit(X, y, batch_size=self.batch_size, epochs=self.epochs, 
+                          validation_split=self.validation_split, verbose=0)
+        
+        # Store last sequence for prediction
+        self.last_sequence = data_scaled[-self.sequence_length:]
+        self.fitted = True
+    
+    def predict(self, steps: int) -> np.ndarray:
+        if not self.fitted:
+            raise ValueError("Model must be fitted before prediction")
+        
+        predictions = []
+        current_sequence = self.last_sequence.copy()
+        
+        for _ in range(steps):
+            # Reshape for prediction
+            X_pred = current_sequence.reshape((1, self.sequence_length, 1))
+            
+            # Make prediction
+            pred_scaled = self.model.predict(X_pred, verbose=0)[0, 0]
+            
+            # Transform back to original scale
+            pred = self.scaler.inverse_transform([[pred_scaled]])[0, 0]
+            predictions.append(pred)
+            
+            # Update sequence for next prediction
+            current_sequence = np.append(current_sequence[1:], pred_scaled)
+        
+        return np.array(predictions)
+    
+    def forecast_with_intervals(self, steps: int, alpha: float = 0.05, num_samples: int = 100) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Create prediction intervals using Monte Carlo Dropout
+        """
+        if not self.fitted:
+            raise ValueError("Model must be fitted before prediction")
+        
+        # Enable dropout during prediction for uncertainty estimation
+        predictions_samples = []
+        
+        for _ in range(num_samples):
+            sample_predictions = []
+            current_sequence = self.last_sequence.copy()
+            
+            for _ in range(steps):
+                X_pred = current_sequence.reshape((1, self.sequence_length, 1))
+                
+                # Predict with dropout enabled (training=True)
+                pred_scaled = self.model(X_pred, training=True).numpy()[0, 0]
+                pred = self.scaler.inverse_transform([[pred_scaled]])[0, 0]
+                sample_predictions.append(pred)
+                
+                current_sequence = np.append(current_sequence[1:], pred_scaled)
+            
+            predictions_samples.append(sample_predictions)
+        
+        predictions_samples = np.array(predictions_samples)
+        
+        # Calculate mean and confidence intervals
+        forecast = np.mean(predictions_samples, axis=0)
+        lower_bound = np.percentile(predictions_samples, (alpha/2) * 100, axis=0)
+        upper_bound = np.percentile(predictions_samples, (1 - alpha/2) * 100, axis=0)
+        
+        return forecast, lower_bound, upper_bound
+
+
 class EnsembleForecaster(BaseForecaster):
     """Ensemble of multiple forecasting models"""
     
@@ -233,9 +399,13 @@ class ModelSelector:
                 'naive': NaiveForecaster(),
                 'seasonal_naive': SeasonalNaiveForecaster(),
                 'arima': ARIMAForecaster(),
+                'sarima': SARIMAForecaster(),
                 'exp_smoothing': ExponentialSmoothingForecaster(),
                 'random_forest': RandomForestForecaster()
             }
+            # Add LSTM only if TensorFlow is available
+            if TENSORFLOW_AVAILABLE:
+                self.models['lstm'] = LSTMForecaster()
         else:
             self.models = models
     

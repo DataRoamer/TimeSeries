@@ -22,7 +22,7 @@ def create_eda_report():
     
     # Load data
     print("Loading NYC taxi dataset...")
-    df = pd.read_csv('../data/raw/nyc_taxi.csv')
+    df = pd.read_csv('data/raw/nyc_taxi.csv')
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df = df.set_index('timestamp')
     
@@ -33,7 +33,7 @@ def create_eda_report():
     df['day'] = df.index.day
     
     # Create PDF report
-    with PdfPages('../reports/NYC_Taxi_EDA_Report.pdf') as pdf:
+    with PdfPages('reports/NYC_Taxi_EDA_Report.pdf') as pdf:
         
         # Title Page
         fig, ax = plt.subplots(figsize=(8.5, 11))
@@ -284,5 +284,5 @@ TEMPORAL PATTERNS DISCOVERED:
 
 if __name__ == "__main__":
     # Create reports directory
-    os.makedirs('../reports', exist_ok=True)
+    os.makedirs('reports', exist_ok=True)
     create_eda_report()

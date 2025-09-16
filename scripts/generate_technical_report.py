@@ -22,7 +22,7 @@ def create_technical_report():
     """Create comprehensive technical analysis PDF report"""
     
     print("Creating comprehensive technical analysis report...")
-    df = pd.read_csv('../data/raw/nyc_taxi.csv')
+    df = pd.read_csv('data/raw/nyc_taxi.csv')
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df = df.set_index('timestamp')
     
@@ -33,7 +33,7 @@ def create_technical_report():
     df['quarter'] = df.index.quarter
     df['is_weekend'] = (df.index.dayofweek >= 5).astype(int)
     
-    with PdfPages('../reports/NYC_Taxi_Technical_Analysis.pdf') as pdf:
+    with PdfPages('reports/NYC_Taxi_Technical_Analysis.pdf') as pdf:
         
         # Page 1: Technical Overview
         create_technical_overview(pdf, df)
@@ -785,5 +785,5 @@ Technology Roadmap:
 
 if __name__ == "__main__":
     # Create reports directory
-    os.makedirs('../reports', exist_ok=True)
+    os.makedirs('reports', exist_ok=True)
     create_technical_report()

@@ -25,7 +25,7 @@ def create_forecasting_report():
     
     # Load data and prepare models
     print("Loading data and running forecasting models...")
-    df = pd.read_csv('../data/raw/nyc_taxi.csv')
+    df = pd.read_csv('data/raw/nyc_taxi.csv')
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df = df.set_index('timestamp')
     
@@ -38,7 +38,7 @@ def create_forecasting_report():
     results = run_all_models(train_data, test_data)
     
     # Create PDF report
-    with PdfPages('../reports/NYC_Taxi_Forecasting_Report.pdf') as pdf:
+    with PdfPages('reports/NYC_Taxi_Forecasting_Report.pdf') as pdf:
         
         # Title Page
         create_title_page(pdf, len(train_data), len(test_data), train_data, test_data)
@@ -113,9 +113,53 @@ def run_all_models(train_data, test_data):
         'r2': r2_score(test_data, lr_forecast)
     }
     
-    # 5. Random Forest (with features)
+    # 5. SARIMA Model
     try:
-        df_full = pd.read_csv('../data/raw/nyc_taxi.csv')
+        from models.forecasting import SARIMAForecaster
+        sarima_model = SARIMAForecaster(order=(1, 1, 1), seasonal_order=(1, 1, 1, 24))
+        sarima_model.fit(train_data)
+        sarima_forecast = sarima_model.predict(len(test_data))
+        
+        results['SARIMA'] = {
+            'forecast': sarima_forecast,
+            'mae': mean_absolute_error(test_data, sarima_forecast),
+            'rmse': np.sqrt(mean_squared_error(test_data, sarima_forecast)),
+            'r2': r2_score(test_data, sarima_forecast)
+        }
+    except Exception as e:
+        print(f"SARIMA failed: {e}")
+        results['SARIMA'] = {
+            'forecast': seasonal_forecast,
+            'mae': float('inf'),
+            'rmse': float('inf'),
+            'r2': -float('inf')
+        }
+    
+    # 6. LSTM Model
+    try:
+        from models.forecasting import LSTMForecaster
+        lstm_model = LSTMForecaster(sequence_length=48, hidden_units=50, epochs=30)
+        lstm_model.fit(train_data)
+        lstm_forecast = lstm_model.predict(len(test_data))
+        
+        results['LSTM'] = {
+            'forecast': lstm_forecast,
+            'mae': mean_absolute_error(test_data, lstm_forecast),
+            'rmse': np.sqrt(mean_squared_error(test_data, lstm_forecast)),
+            'r2': r2_score(test_data, lstm_forecast)
+        }
+    except Exception as e:
+        print(f"LSTM failed: {e}")
+        results['LSTM'] = {
+            'forecast': seasonal_forecast,
+            'mae': float('inf'),
+            'rmse': float('inf'),
+            'r2': -float('inf')
+        }
+    
+    # 7. Random Forest (with features)
+    try:
+        df_full = pd.read_csv('data/raw/nyc_taxi.csv')
         df_full['timestamp'] = pd.to_datetime(df_full['timestamp'])
         df_full = df_full.set_index('timestamp')
         
@@ -199,6 +243,8 @@ def create_title_page(pdf, n_train, n_test, train_data, test_data):
     • Seasonal Naive (Daily Pattern)  
     • Moving Average (7-day Window)
     • Linear Trend Model
+    • SARIMA (Seasonal ARIMA)
+    • LSTM Neural Network
     • Random Forest (with Features)
     
     EVALUATION METRICS:
@@ -352,6 +398,18 @@ MODEL COMPARISONS:
 • Captures overall growth trends
 • Limited by linear assumption
 
+🔄 SARIMA Model:
+• Seasonal ARIMA with (1,1,1)x(1,1,1,24) parameters
+• MAE: {results.get('SARIMA', {}).get('mae', 0):,.0f} trips
+• Captures both trend and seasonal patterns
+• Statistical approach with seasonal decomposition
+
+🧠 LSTM Neural Network:
+• Deep learning with 48-step memory
+• MAE: {results.get('LSTM', {}).get('mae', 0):,.0f} trips
+• Learns complex temporal dependencies
+• Advanced sequential pattern recognition
+
 🌲 Random Forest:
 • Advanced ML with engineered features
 • MAE: {results.get('Random Forest', {}).get('mae', 0):,.0f} trips
@@ -392,7 +450,7 @@ def create_feature_analysis(pdf, train_data, test_data):
     
     try:
         # Recreate Random Forest model for feature analysis
-        df = pd.read_csv('../data/raw/nyc_taxi.csv')
+        df = pd.read_csv('data/raw/nyc_taxi.csv')
         df['timestamp'] = pd.to_datetime(df['timestamp'])
         df = df.set_index('timestamp')
         
@@ -726,5 +784,5 @@ Long-term (1+ years):
 
 if __name__ == "__main__":
     # Create reports directory
-    os.makedirs('../reports', exist_ok=True)
+    os.makedirs('reports', exist_ok=True)
     create_forecasting_report()

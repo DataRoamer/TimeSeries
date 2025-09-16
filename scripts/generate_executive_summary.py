@@ -22,7 +22,7 @@ def create_executive_summary():
     
     # Load data for summary statistics
     print("Creating executive summary...")
-    df = pd.read_csv('../data/raw/nyc_taxi.csv')
+    df = pd.read_csv('data/raw/nyc_taxi.csv')
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df = df.set_index('timestamp')
     
@@ -31,7 +31,7 @@ def create_executive_summary():
     df['day_of_week'] = df.index.dayofweek
     df['month'] = df.index.month
     
-    with PdfPages('../reports/NYC_Taxi_Executive_Summary.pdf') as pdf:
+    with PdfPages('reports/NYC_Taxi_Executive_Summary.pdf') as pdf:
         
         # Page 1: Executive Overview
         create_executive_overview(pdf, df)
@@ -504,5 +504,5 @@ Ready to transform NYC taxi operations with data-driven demand forecasting!
 
 if __name__ == "__main__":
     # Create reports directory
-    os.makedirs('../reports', exist_ok=True)
+    os.makedirs('reports', exist_ok=True)
     create_executive_summary()
