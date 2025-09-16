@@ -13,7 +13,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.backends.backend_pdf import PdfPages
-from datetime import datetime
 from scipy import stats
 import warnings
 warnings.filterwarnings('ignore')
@@ -135,8 +134,6 @@ Model Selection Criteria:
             ha='center', va='center', fontsize=10,
             bbox=dict(boxstyle="round,pad=0.5", facecolor="lightgreen", alpha=0.8))
     
-    fig.text(0.5, 0.05, f'Technical Analysis conducted: {datetime.now().strftime("%B %d, %Y")}', 
-            ha='center', va='center', fontsize=9, style='italic')
     
     pdf.savefig(fig, bbox_inches='tight')
     plt.close()
@@ -777,8 +774,6 @@ Technology Roadmap:
             ha='left', va='top', fontsize=7,
             bbox=dict(boxstyle="round,pad=0.5", facecolor="lightgreen", alpha=0.8))
     
-    fig.text(0.5, 0.02, f'Technical specifications prepared: {datetime.now().strftime("%B %d, %Y")}', 
-            ha='center', va='center', fontsize=8, style='italic')
     
     pdf.savefig(fig, bbox_inches='tight')
     plt.close()

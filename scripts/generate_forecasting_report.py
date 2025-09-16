@@ -13,7 +13,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.backends.backend_pdf import PdfPages
-from datetime import datetime
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
@@ -260,8 +259,6 @@ def create_title_page(pdf, n_train, n_test, train_data, test_data):
             bbox=dict(boxstyle="round,pad=0.5", facecolor="lightblue", alpha=0.8))
     
     # Report info
-    fig.text(0.5, 0.15, f'Generated on: {datetime.now().strftime("%B %d, %Y at %I:%M %p")}', 
-            ha='center', va='center', fontsize=10, style='italic')
     
     pdf.savefig(fig, bbox_inches='tight')
     plt.close()
@@ -776,8 +773,6 @@ Long-term (1+ years):
             ha='left', va='top', fontsize=9,
             bbox=dict(boxstyle="round,pad=0.5", facecolor="lightgreen", alpha=0.8))
     
-    fig.text(0.5, 0.02, f'Report completed: {datetime.now().strftime("%B %d, %Y at %I:%M %p")}', 
-            ha='center', va='center', fontsize=8, style='italic')
     
     pdf.savefig(fig, bbox_inches='tight')
     plt.close()
