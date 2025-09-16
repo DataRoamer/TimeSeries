@@ -13,7 +13,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.backends.backend_pdf import PdfPages
-from datetime import datetime
 from models.forecasting import (
     NaiveForecaster,
     SARIMAForecaster,
@@ -195,8 +194,6 @@ DATASET SCOPE:
             ha='center', va='center', fontsize=11,
             bbox=dict(boxstyle="round,pad=0.5", facecolor="lightblue", alpha=0.8))
     
-    fig.text(0.5, 0.05, f'Prepared for Executive Leadership | {datetime.now().strftime("%B %d, %Y")}', 
-            ha='center', va='center', fontsize=10, style='italic')
     
     pdf.savefig(fig, bbox_inches='tight')
     plt.close()
@@ -695,8 +692,6 @@ Investment: $1.0M | Timeline: 12 months | ROI: 300-400%
             ha='left', va='top', fontsize=10,
             bbox=dict(boxstyle="round,pad=0.5", facecolor="lightgreen", alpha=0.8))
     
-    fig.text(0.5, 0.02, f'Confidential Executive Summary | {datetime.now().strftime("%B %d, %Y")}', 
-            ha='center', va='center', fontsize=8, style='italic')
     
     pdf.savefig(fig, bbox_inches='tight')
     plt.close()

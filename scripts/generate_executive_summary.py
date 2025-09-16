@@ -13,7 +13,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.backends.backend_pdf import PdfPages
-from datetime import datetime
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -121,7 +120,7 @@ def create_executive_overview(pdf, df):
             bbox=dict(boxstyle="round,pad=0.5", facecolor="lightgreen", alpha=0.9))
     
     # Bottom info
-    fig.text(0.5, 0.05, f'Prepared by: Time Series Analytics Team | {datetime.now().strftime("%B %Y")}', 
+    fig.text(0.5, 0.05, 'Prepared by: Time Series Analytics Team',
             ha='center', va='center', fontsize=9, style='italic', color='gray')
     
     pdf.savefig(fig, bbox_inches='tight')
@@ -496,8 +495,6 @@ Ready to transform NYC taxi operations with data-driven demand forecasting!
             ha='left', va='top', fontsize=9,
             bbox=dict(boxstyle="round,pad=0.5", facecolor="lightyellow", alpha=0.9))
     
-    fig.text(0.5, 0.02, f'Executive Summary prepared: {datetime.now().strftime("%B %d, %Y")}', 
-            ha='center', va='center', fontsize=8, style='italic', color='gray')
     
     pdf.savefig(fig, bbox_inches='tight')
     plt.close()

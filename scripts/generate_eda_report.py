@@ -13,7 +13,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.backends.backend_pdf import PdfPages
-from datetime import datetime
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -74,8 +73,6 @@ def create_eda_report():
                 bbox=dict(boxstyle="round,pad=0.5", facecolor="lightgray", alpha=0.8))
         
         # Report info
-        fig.text(0.5, 0.15, f'Generated on: {datetime.now().strftime("%B %d, %Y at %I:%M %p")}', 
-                ha='center', va='center', fontsize=10, style='italic')
         fig.text(0.5, 0.12, 'Time Series Analysis Project', 
                 ha='center', va='center', fontsize=10, style='italic')
         
@@ -274,8 +271,6 @@ TEMPORAL PATTERNS DISCOVERED:
                 ha='left', va='top', fontsize=10, 
                 bbox=dict(boxstyle="round,pad=0.5", facecolor="lightyellow", alpha=0.8))
         
-        fig.text(0.5, 0.05, f'Report generated: {datetime.now().strftime("%B %d, %Y at %I:%M %p")}', 
-                ha='center', va='center', fontsize=8, style='italic')
         
         pdf.savefig(fig, bbox_inches='tight')
         plt.close()

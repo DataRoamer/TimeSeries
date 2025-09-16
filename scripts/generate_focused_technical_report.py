@@ -13,7 +13,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.backends.backend_pdf import PdfPages
-from datetime import datetime
 from scipy import stats
 from statsmodels.tsa.stattools import adfuller, acf, pacf
 from statsmodels.tsa.seasonal import seasonal_decompose
@@ -155,8 +154,6 @@ Cross-Validation:
             ha='center', va='center', fontsize=9, family='monospace',
             bbox=dict(boxstyle="round,pad=0.5", facecolor="lightyellow", alpha=0.8))
     
-    fig.text(0.5, 0.02, f'Technical Documentation | {datetime.now().strftime("%Y-%m-%d %H:%M")}', 
-            ha='center', va='center', fontsize=8, style='italic')
     
     pdf.savefig(fig, bbox_inches='tight')
     plt.close()
