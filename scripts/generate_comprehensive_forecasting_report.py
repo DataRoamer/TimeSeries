@@ -167,10 +167,6 @@ def create_title_page(pdf, n_train, n_test, train_data, test_data):
             ha='center', va='center', fontsize=18)
     
     # Dataset info
-    fig.text(0.5, 0.70, f'Training Period: {train_data.index[0].strftime("%B %d, %Y")} - {train_data.index[-1].strftime("%B %d, %Y")}', 
-            ha='center', va='center', fontsize=12)
-    fig.text(0.5, 0.67, f'Test Period: {test_data.index[0].strftime("%B %d, %Y")} - {test_data.index[-1].strftime("%B %d, %Y")}', 
-            ha='center', va='center', fontsize=12)
     fig.text(0.5, 0.64, f'Training Samples: {n_train:,} | Test Samples: {n_test:,}', 
             ha='center', va='center', fontsize=12)
     
