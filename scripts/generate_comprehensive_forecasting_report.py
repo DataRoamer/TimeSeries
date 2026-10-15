@@ -45,7 +45,7 @@ def create_comprehensive_forecasting_report():
     results = run_target_models(train_data, test_data)
     
     # Create PDF report
-    with PdfPages('reports/Comprehensive_Forecasting_Report.pdf') as pdf:
+    with PdfPages('reports/Comprehensive_Forecasting_Report.pdf', metadata={'Author': 'DataRoamer'}) as pdf:
         
         # Title Page
         create_title_page(pdf, len(train_data), len(test_data), train_data, test_data)

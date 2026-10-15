@@ -82,7 +82,7 @@ def create_updated_summary():
         results['LSTM'] = None
     
     # Generate PDF summary
-    with PdfPages('reports/Updated_Forecasting_Models_Summary.pdf') as pdf:
+    with PdfPages('reports/Updated_Forecasting_Models_Summary.pdf', metadata={'Author': 'DataRoamer'}) as pdf:
         
         # Title page
         fig, ax = plt.subplots(figsize=(8.5, 11))

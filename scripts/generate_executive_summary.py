@@ -30,7 +30,7 @@ def create_executive_summary():
     df['day_of_week'] = df.index.dayofweek
     df['month'] = df.index.month
     
-    with PdfPages('reports/NYC_Taxi_Executive_Summary.pdf') as pdf:
+    with PdfPages('reports/NYC_Taxi_Executive_Summary.pdf', metadata={'Author': 'DataRoamer'}) as pdf:
         
         # Page 1: Executive Overview
         create_executive_overview(pdf, df)

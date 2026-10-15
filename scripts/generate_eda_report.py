@@ -32,7 +32,7 @@ def create_eda_report():
     df['day'] = df.index.day
     
     # Create PDF report
-    with PdfPages('reports/NYC_Taxi_EDA_Report.pdf') as pdf:
+    with PdfPages('reports/NYC_Taxi_EDA_Report.pdf', metadata={'Author': 'DataRoamer'}) as pdf:
         
         # Title Page
         fig, ax = plt.subplots(figsize=(8.5, 11))
