@@ -14,7 +14,7 @@ TimeSeries/
 ├── src/
 │   ├── utils/        # Utility functions
 │   ├── models/       # Time series models
-│   └── visualization/# Plotting functions
+│   └── visualization/ # Plotting functions
 ├── tests/           # Unit tests
 ├── docs/            # Documentation
 ├── scripts/         # Standalone scripts
@@ -76,6 +76,8 @@ forecast = model.predict(steps=30)
 - `notebooks/02_forecasting_basics.ipynb` - Basic forecasting models
 - `notebooks/03_advanced_models.ipynb` - ML and deep learning approaches
 - `notebooks/04_model_evaluation.ipynb` - Performance assessment
+- `notebooks/nyc_taxi_eda.ipynb` - NYC taxi demand exploratory analysis
+- `notebooks/nyc_taxi_forecasting.ipynb` - NYC taxi demand forecasting
 
 ## 🤝 Contributing
 
